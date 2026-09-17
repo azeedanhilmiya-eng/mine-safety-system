@@ -8,3 +8,7 @@ scipy
 soundfile
 matplotlib      # confusion matrix and threshold-sweep figures
 pyserial        # tools/serial_record.py, tools/device_parity.py
+
+# Optional: only for `demo.py --mic`. Everything else, demo.py included, runs
+# without it. On Linux it also needs the libportaudio2 system package.
+# sounddevice

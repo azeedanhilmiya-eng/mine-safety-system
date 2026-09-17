@@ -37,6 +37,42 @@ TensorFlow 版本是**锁死的**。`audio_microfrontend` 的可用性和参数�
 产物会被打上 `PLACEHOLDER` 标记，**不可能被误当成真模型**：
 `data/SYNTHETIC` 标记文件会一路传到 `kws_config.h` 和 `kws_model_data.cc` 的注释里。
 
+## 在电脑上体验整条链路
+
+不需要开发板：
+
+```bash
+python demo.py --sample                   # 随机播一条 data/raw 里的音频
+python demo.py --wav path/to/clip.wav     # 播你自己录的
+python demo.py --mic                      # 对着笔记本麦克风说话
+python demo.py --mic --listen             # 连续模式，Ctrl-C 退出
+python demo.py --sample --drop-ack        # 故意丢掉 ACK，看重传和去重
+```
+
+输出会依次走完：麦克风 → 三个窗的识别结果 → 投票与判决 → LoRa 报文 → ACK →
+网关 OLED（终端里画出 128×64 的版面）→ 蜂鸣器/短信/Firebase。
+
+**哪些是真的**：
+
+| | |
+|---|---|
+| 音频前端 | 真的，就是固件用的那份 C micro-frontend |
+| INT8 模型 | 真的，TFLite 解释器跑同一个 `.tflite` |
+| 三窗投票和判决 | **真的**，通过 ctypes 加载固件的 `kws_postprocess.c`，不是 Python 重写 |
+| LoRa 报文 | **真的**，构造/校验/解析都由固件的 `kws_packet.h` 完成，含网关的严格校验 |
+| 麦克风 | 假的，是笔记本麦不是 I2S 上的 INMP441 |
+| 电台 | 假的，是个 Python 变量，不会自己出错 |
+| OLED / 短信 / Firebase | 假的，打印出来而不是真发 |
+| 耗时数字 | **是你电脑的**，ESP32-S3 大约慢两个数量级，这个数只能从板子上取 |
+
+`--mic` 需要 `pip install sounddevice`（Linux 还要 `libportaudio2`）。没装会提示你改用 `--wav`。
+
+`--threshold` 可以临时覆盖固件里编译进去的阈值，**只影响这次演示，不改板子**。
+占位模型的阈值是 0.99（扫出来的极端值），不覆盖的话你看不到网关那一段。
+程序在"词认出来了但差一点"时会主动提示你该用什么值。
+
+第一次运行会自动把固件的 C 代码编译成 `out/libkwssim.so`。
+
 ## 真实流程
 
 ### 1. 采集
