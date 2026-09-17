@@ -54,6 +54,24 @@ macOS 自带的 python3（Xcode 命令行工具，通常是 3.9）可以直接�
 **编译器**：主机端的 C 代码（单元测试和演示动态库）在 gcc 和 clang 下都验证过
 `-Wall -Wextra -Werror` 干净通过，macOS 的 Xcode 命令行工具够用，不需要额外装东西。
 
+### 放在外接盘上（exFAT / FAT32）
+
+`/Volumes/...` 下的 U 盘和移动硬盘默认多是 exFAT，**exFAT 不支持符号链接**，
+而 `python3 -m venv` 默认要给解释器建符号链接，所以会直接失败。加 `--copies`：
+
+```bash
+python3 -m venv --copies .venv
+```
+
+其余步骤不变。macOS 把 exFAT 挂载成全员 0777，所以执行位不是问题；
+如果碰到 `permission denied`，用 `bash run_smoke_test.sh` 绕开。
+
+路径里有中文没关系，但记得加引号：`cd "/Volumes/你的盘/矿井语音识别"`。
+
+**建议还是放内置盘**。外接盘上装 600 MB 的 TensorFlow、反复读写特征缓存都慢，
+而且盘一旦被拔掉或休眠断开，正在训练的进程会直接崩。
+用它当备份盘可以，当工作目录不划算。
+
 ## 先跑一遍空转
 
 在录到任何真实数据之前，先确认工具链是通的：
