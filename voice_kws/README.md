@@ -18,6 +18,9 @@ micro frontend 是**同一份 C 代码**。不是"两边都实现一遍 MFCC 然
 
 **先克隆仓库**，所有命令都要在 `voice_kws/` 目录里跑：
 
+`git clone` 会在当前目录下再建一层 `mine-safety-system/`，所以克隆之后要
+`cd` 进去两层才到 `voice_kws/`：
+
 ```bash
 git clone https://github.com/azeedanhilmiya-eng/mine-safety-system.git
 cd mine-safety-system
@@ -26,7 +29,7 @@ git checkout claude/fervent-allen-ht5svz
 cd voice_kws
 python3 -m venv .venv && source .venv/bin/activate
 python -m pip install --upgrade pip
-pip install -r requirements.txt          # 约 600 MB，几分钟
+python -m pip install -r requirements.txt
 ```
 
 装完确认一下（这一步能挡掉绝大多数后续的莫名其妙）：
@@ -63,7 +66,10 @@ macOS 自带的 python3（Xcode 命令行工具，通常是 3.9）可以直接�
 python3 -m venv --copies .venv
 ```
 
-其余步骤不变。macOS 把 exFAT 挂载成全员 0777，所以执行位不是问题；
+其余步骤不变。
+
+复制命令时注意：**zsh 交互模式默认不把 `#` 当注释**，
+所以本文档的命令块里不写行尾注释，你自己粘贴时也别把说明文字带进去。macOS 把 exFAT 挂载成全员 0777，所以执行位不是问题；
 如果碰到 `permission denied`，用 `bash run_smoke_test.sh` 绕开。
 
 路径里有中文没关系，但记得加引号：`cd "/Volumes/你的盘/矿井语音识别"`。
@@ -88,13 +94,13 @@ python3 -m venv --copies .venv
 
 不需要开发板：
 
-```bash
-python demo.py --sample                   # 随机播一条 data/raw 里的音频
-python demo.py --wav path/to/clip.wav     # 播你自己录的
-python demo.py --mic                      # 对着笔记本麦克风说话
-python demo.py --mic --listen             # 连续模式，Ctrl-C 退出
-python demo.py --sample --drop-ack        # 故意丢掉 ACK，看重传和去重
-```
+| 命令 | 作用 |
+|---|---|
+| `python demo.py --sample` | 随机播一条 `data/raw` 里的音频 |
+| `python demo.py --wav path/to/clip.wav` | 播你自己录的 |
+| `python demo.py --mic` | 对着笔记本麦克风说话 |
+| `python demo.py --mic --listen` | 连续模式，Ctrl-C 退出 |
+| `python demo.py --sample --drop-ack` | 故意丢掉 ACK，看重传和去重 |
 
 输出会依次走完：麦克风 → 三个窗的识别结果 → 投票与判决 → LoRa 报文 → ACK →
 网关 OLED（终端里画出 128×64 的版面）→ 蜂鸣器/短信/Firebase。
