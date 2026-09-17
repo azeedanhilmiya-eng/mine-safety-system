@@ -34,6 +34,7 @@ extern "C" {
 
 #include "kws_config.h"
 #include "kws_model_data.h"
+#include "kws_packet.h"
 #include "kws_postprocess.h"
 
 // ------------------------------------------------------------------ pins ---
@@ -293,32 +294,23 @@ static KwsResult captureAndClassify(bool dump_wav, bool dump_features) {
 }
 
 // ------------------------------------------------------------- LoRa event ---
-static uint8_t crc8(const char *data, size_t len) {
-  uint8_t crc = 0x00;
-  for (size_t i = 0; i < len; i++) {
-    crc ^= (uint8_t)data[i];
-    for (int b = 0; b < 8; b++) {
-      crc = (crc & 0x80) ? (uint8_t)((crc << 1) ^ 0x07) : (uint8_t)(crc << 1);
-    }
-  }
-  return crc;
-}
-
-// VE,<node>,<cmd>,<conf>,<seq>,<crc8>   ack: VA,<node>,<seq>
-//
-// The prefix matters: the surface gateway parses telemetry positionally, so a
-// voice packet that looked like telemetry would be read as sensor values.
+// Format and checksum live in kws_packet.h, which the surface gateway compiles
+// too, so the two ends cannot drift apart. test/test_packet.c covers it.
 static void sendVoiceEvent(uint8_t cmd, uint8_t conf) {
   static uint8_t seq = 0;
   seq++;
 
-  char body[40];
-  snprintf(body, sizeof(body), "VE,%s,%u,%u,%u,", NODE_ID, cmd, conf, seq);
-  char packet[48];
-  snprintf(packet, sizeof(packet), "%s%02X", body, crc8(body, strlen(body)));
+  char packet[KWS_PACKET_MAX];
+  if (kws_packet_format(packet, sizeof(packet), NODE_ID, cmd, conf, seq) == 0) {
+    Serial.println("[VOICE-TX] packet too long, dropped");
+    return;
+  }
 
   char expected_ack[24];
-  snprintf(expected_ack, sizeof(expected_ack), "VA,%s,%u", NODE_ID, seq);
+  if (kws_ack_format(expected_ack, sizeof(expected_ack), NODE_ID, seq) == 0) {
+    Serial.println("[VOICE-TX] ack buffer too small, dropped");
+    return;
+  }
 
   for (int attempt = 0; attempt < 2; attempt++) {
     LoRa.beginPacket();

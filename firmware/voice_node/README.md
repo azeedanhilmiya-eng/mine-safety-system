@@ -8,8 +8,9 @@
 | 部分 | 状态 |
 |---|---|
 | `kws_postprocess.c/h` 决策逻辑 | **已通过主机端测试**（525 条向量与 Python 实现逐位一致） |
+| `kws_packet.h` 报文格式 | **已通过主机端测试**（构造/解析/CRC，合法报文的所有单字符变异均被拒绝） |
 | `kws_config.h`、`kws_model_data.cc` | 由训练流程生成，当前是**合成数据占位模型** |
-| `voice_node.ino` I2S / 前端 / TFLM 胶水层 | **未编译验证**，首次构建预计需要按你的组件布局调整 include 路径 |
+| `voice_node.ino` I2S / 前端 / TFLM 胶水层 | **已过类型检查**（`firmware/test`，用桩头文件），但**未用真实库编译过** |
 
 ## 引脚
 
@@ -63,14 +64,18 @@ strapping（0/45/46）。
 ## LoRa 报文
 
 ```
-语音事件（节点 -> 网关）  VE,<node>,<cmd>,<conf>,<seq>,<crc8>    例 VE,M1,2,93,17,3F
+语音事件（节点 -> 网关）  VE,<node>,<cmd>,<conf>,<seq>,<crc8>    例 VE,M1,2,93,17,C0
 ACK      （网关 -> 节点）  VA,<node>,<seq>                        例 VA,M1,17
 ```
 
-`crc8` 对最后两位十六进制之前的全部字符计算，多项式 0x07，两位大写十六进制。
+`crc8` 对校验和之前（含那个逗号）的全部字符计算，多项式 0x07，初值 0x00，两位大写十六进制。
 `cmd` 是 `kKwsLabels` 的下标，也就是 `kws/config.py: LABELS` 的下标。
 
-### 地面网关必须改（否则会误告警）
+格式的构造和解析都在 **`kws_packet.h`**（header-only，纯 C），
+**节点和网关编译的是同一份**，所以两端不可能分叉。解析是严格的：
+字段数、数值范围、校验和格式任何一项不对都拒绝，不做猜测。
+
+### 地面网关（已实现）
 
 `firmware/surface_node.ino` 的 `processPacket()` 是按位置硬解析的：读第一个逗号前的字段
 当 node id，然后按 4 个逗号取 mq4/mq7/water/flags。
@@ -81,18 +86,51 @@ ACK      （网关 -> 节点）  VA,<node>,<seq>                        例 VA,M
 - 写成 `M1,V,...` → `flags` 会取到序号等非零值，`mine.inAlert` 置真，
   **误触发蜂鸣器和短信**。
 
-所以必须在函数最开头加分支：
+所以 `processPacket()` 最开头加了分支，语音报文在进入传感器解析之前就被截走。
+
+`processVoiceEvent()` 的顺序是：解析并校验 → **立即回 ACK** → 去重 → 拒绝非指令类 →
+OLED → 蜂鸣器 → 短信 → Firebase。
+
+**ACK 必须最先发。** 节点只等 900 ms 就重传，而刷 OLED、发短信、传 Firebase
+加起来远超这个时间。先做慢活再回 ACK，等于每个事件都发两遍。
+
+**去重**：ACK 丢失时节点会重传同一个 seq。10 秒窗口内重复的 seq 会被再次 ACK
+但不重复告警。
+
+**语音状态和传感器状态是分开的**（`VoiceState` vs `MineState`）。如果把语音事件塞进
+`flags`/`inAlert`，一声呼救在短信、看板和 App 里会显示成瓦斯读数。
+
+**Firebase 走独立的 `/voice_events/<node>/` 路径**，不进 `/alerts`，
+否则 App 的传感器告警页会被污染。
+
+### OLED 中文
+
+默认关闭，显示英文标签（和网关现有界面一致）。打开需要 CJK 字体：
 
 ```cpp
-void processPacket(const String &packet, int rssi) {
-  if (packet.startsWith("VE,")) { processVoiceEvent(packet, rssi); return; }
-  /* ...原有传感器解析逻辑保持不变... */
-}
+#define VOICE_OLED_CHINESE 1                       // surface_node.ino
+#define VOICE_LABEL_FONT u8g2_font_wqy12_t_gb2312  // 换成你的 u8g2 实际提供的
 ```
 
-`processVoiceEvent()` 负责：校验 crc8 → 回 ACK → OLED 显示"节点1 救命" → 蜂鸣器 →
-有网时同步 Firebase。**Firebase 走独立的 `/voice_events` 路径**，不要混进 `/alerts`，
-否则 App 的传感器告警页会被语音事件污染。
+字体本身占几百 KB flash，网关这边不紧张。默认关掉是因为字体名要和你的 u8g2
+版本对得上，而这个我没法在这里验证——编译不过就换一个字体名，或者改回 0。
+
+绘制统一用 `drawUTF8()`，所以切换只影响字体和标签表，不影响其它代码。
+
+### 顺带修掉的三个问题
+
+改网关时发现的，都不是语音功能引入的，但都会影响你的断网演示：
+
+1. `String node = mines[index].nodeId.toLowerCase();` —— arduino-esp32 的
+   `toLowerCase()` 返回 `void`，这行**编译不过**。两处，已拆成两条语句。
+2. `drawWiFiStatus()` / `drawGsmStatus()` 无条件调 `drawReadyScreen()`，
+   会把还在有效期内的告警画面擦掉。已改为重绘当前应显示的内容。
+3. WiFi 重连原本是 `millis() % 10000 < 50` 触发，而 `connectWiFi()` 最长阻塞 20 秒。
+   **断网演示正好是这个条件**——网关会把大部分时间花在阻塞重连上，收不到 LoRa。
+   已改成 30 秒定时器，且告警显示期间不重试。
+
+   演示前还可以考虑把 `WIFI_TIMEOUT_MS` 从 20000 调小到 3000，阻塞会短很多。
+   这个我没替你改，因为它会影响正常联网时的行为。
 
 ## 三窗投票
 
