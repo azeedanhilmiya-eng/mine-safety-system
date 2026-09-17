@@ -1,0 +1,16 @@
+# Recordings and generated data: too big for git, and the real ones are
+# personal recordings that belong in the team's own storage.
+data/raw/
+data/noise/
+data/cache/
+data/SYNTHETIC
+
+# Training artefacts, including out/report/. The figures there are a product
+# of whatever data was on the machine that ran evaluate.py, and a synthetic
+# rehearsal produces figures that look exactly like real ones. Regenerate them
+# from real recordings and attach them to the submission; force-add them
+# (git add -f) if the team wants them in the repo at that point.
+out/
+
+__pycache__/
+*.pyc

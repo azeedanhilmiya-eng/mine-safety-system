@@ -1,0 +1,10 @@
+# TensorFlow is pinned: the training features come from
+# tensorflow.lite.experimental.microfrontend, the same C code tflite-micro
+# compiles into the firmware. Its availability and signature have moved across
+# releases, and 2.15.1 is the version this pipeline was built and tested on.
+tensorflow-cpu==2.15.1
+numpy<2
+scipy
+soundfile
+matplotlib      # confusion matrix and threshold-sweep figures
+pyserial        # tools/serial_record.py, tools/device_parity.py
