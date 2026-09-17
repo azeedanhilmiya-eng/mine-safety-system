@@ -41,10 +41,14 @@ def format_confusion(m: np.ndarray, labels: list[str] | None = None) -> str:
 
 
 def apply_threshold(probs: np.ndarray, threshold: float) -> np.ndarray:
-    """Argmax, but anything below `threshold` collapses to `unknown`.
+    """Single-window argmax; anything below `threshold` collapses to `unknown`.
 
-    This is the same rule the firmware applies, so PC numbers and board
-    numbers describe the same decision function.
+    This is NOT what the firmware does. The board votes across three
+    overlapping windows and takes the highest confidence among the windows
+    that agreed, which is never lower than a single window's, so a threshold
+    calibrated here is looser on the board than it looks. Use
+    `decisions_to_pred` / `sweep_decisions` for numbers that describe the
+    device; this function stays for the single-window diagnostic.
     """
     unknown = C.LABELS.index("unknown")
     pred = probs.argmax(axis=1)
@@ -70,6 +74,60 @@ def keyword_recall(y_true: np.ndarray, probs: np.ndarray,
     if not is_cmd.any():
         return float("nan")
     return float((pred[is_cmd] == y_true[is_cmd]).mean())
+
+
+def decisions_to_pred(labels: np.ndarray, confs: np.ndarray,
+                      threshold: float) -> np.ndarray:
+    """Vote outcomes -> predicted class, applying the firmware's accept rule.
+
+    `labels` is the voted class per item, or -1 when the windows disagreed.
+    Anything rejected is reported as `unknown`, which is how a rejection looks
+    from the gateway's side: no event at all.
+    """
+    unknown = C.LABELS.index("unknown")
+    labels = np.asarray(labels)
+    confs = np.asarray(confs, dtype=np.float64)
+
+    pred = np.where(labels < 0, unknown, labels)
+    is_cmd = np.isin(pred, [i for i in range(C.NUM_CLASSES)
+                            if i not in C.NON_COMMAND_IDS])
+    pred = np.where(is_cmd & (confs < threshold), unknown, pred)
+    return pred.astype(np.int64)
+
+
+def rates_from_pred(y_true: np.ndarray, pred: np.ndarray) -> tuple[int, int, float]:
+    """(false triggers, negative clips, keyword recall) for a prediction array."""
+    negatives = np.isin(y_true, C.NON_COMMAND_IDS)
+    fired = ~np.isin(pred, C.NON_COMMAND_IDS)
+    ft, neg = int((negatives & fired).sum()), int(negatives.sum())
+
+    is_cmd = ~negatives
+    recall = float((pred[is_cmd] == y_true[is_cmd]).mean()) if is_cmd.any() \
+        else float("nan")
+    return ft, neg, recall
+
+
+def sweep_decisions(y_true: np.ndarray, labels: np.ndarray, confs: np.ndarray,
+                    lo: float = 0.30, hi: float = 0.99,
+                    step: float = 0.01) -> list[dict]:
+    """Threshold sweep under the firmware's voting rule.
+
+    The voted label and its confidence do not depend on the threshold -- only
+    the accept/reject decision does -- so they are computed once by the caller
+    and swept cheaply here.
+    """
+    rows = []
+    for t in np.arange(lo, hi + 1e-9, step):
+        pred = decisions_to_pred(labels, confs, float(t))
+        ft, neg, recall = rates_from_pred(y_true, pred)
+        rows.append({
+            "threshold": round(float(t), 3),
+            "keyword_recall": round(recall, 4),
+            "false_triggers": ft,
+            "negatives": neg,
+            "false_trigger_rate": round(ft / neg, 4) if neg else 0.0,
+        })
+    return rows
 
 
 def threshold_sweep(y_true: np.ndarray, probs: np.ndarray,

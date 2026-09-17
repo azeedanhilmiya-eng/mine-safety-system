@@ -45,6 +45,24 @@ def representative_dataset(x: np.ndarray, y: np.ndarray, n: int, seed: int):
     return gen
 
 
+def int8_predict_raw(interpreter: tf.lite.Interpreter,
+                     x: np.ndarray) -> np.ndarray:
+    """Raw int8 output tensors for [N,49,40,1] features -> [N, num_classes].
+
+    The voting rule operates on these, not on dequantised probabilities, so it
+    can be compared against the firmware value for value.
+    """
+    inp = interpreter.get_input_details()[0]
+    out = interpreter.get_output_details()[0]
+    raw = np.zeros((x.shape[0], C.NUM_CLASSES), dtype=np.int8)
+    for i in range(x.shape[0]):
+        interpreter.set_tensor(inp["index"], x[i].reshape(1, *C.FEATURE_SHAPE)
+                               .astype(inp["dtype"]))
+        interpreter.invoke()
+        raw[i] = interpreter.get_tensor(out["index"])[0]
+    return raw
+
+
 def int8_predict(interpreter: tf.lite.Interpreter, x: np.ndarray) -> np.ndarray:
     """Run the int8 model over [N,49,40,1] int8 features, returning probabilities."""
     inp = interpreter.get_input_details()[0]

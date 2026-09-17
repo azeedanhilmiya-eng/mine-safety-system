@@ -203,6 +203,47 @@ def build_all(*, variants: int = 8, seed: int = C.TRAIN["seed"],
     return out
 
 
+def build_vote_windows(clips: list[Clip], *, seed: int,
+                       placements: int = 3) -> tuple[np.ndarray, np.ndarray]:
+    """Features for the three overlapping windows the firmware votes over.
+
+    The board does not classify a tidy 1 s clip. It records KWS_PTT_CAPTURE_MS
+    from the moment the button goes down and slices three 1 s windows out of
+    it, because nobody presses a button and starts talking in the same
+    instant. Evaluating on single clips measures a decision rule the board
+    never runs.
+
+    Each test clip is placed at a random offset inside the capture buffer --
+    which is exactly the timing uncertainty the extra windows exist to absorb
+    -- and `placements` draws per clip keep that randomness from dominating
+    the result.
+
+    Returns (X [N, num_windows, 49, 40, 1] int8, y [N] int32).
+    """
+    rng = np.random.default_rng(seed)
+    capture = C.SAMPLE_RATE * C.PTT_CAPTURE_MS // 1000
+    max_delay = capture - C.CLIP_SAMPLES
+    offsets = [C.SAMPLE_RATE * ms // 1000 for ms in C.WINDOW_OFFSETS_MS]
+    if max_delay < 0 or max(offsets) + C.CLIP_SAMPLES > capture:
+        raise ValueError("PTT_CAPTURE_MS is too short for the window offsets")
+
+    xs, ys = [], []
+    for clip in clips:
+        pcm = augment.fit_length(read_wav(clip.path))
+        for _ in range(placements):
+            buf = np.zeros(capture, dtype=np.int16)
+            delay = int(rng.integers(0, max_delay + 1))
+            buf[delay : delay + C.CLIP_SAMPLES] = pcm
+            xs.append(np.stack([features(buf[o : o + C.CLIP_SAMPLES])
+                                for o in offsets]))
+            ys.append(clip.label)
+
+    if not xs:
+        shape = (0, len(offsets), *C.FEATURE_SHAPE)
+        return np.zeros(shape, np.int8), np.zeros((0,), np.int32)
+    return np.stack(xs).astype(np.int8), np.asarray(ys, np.int32)
+
+
 def class_weights(y: np.ndarray) -> dict[int, float]:
     """Balance the loss -- `unknown` will outnumber the keywords several to one."""
     counts = np.bincount(y, minlength=C.NUM_CLASSES).astype(np.float64)

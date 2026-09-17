@@ -38,7 +38,8 @@ def vote_cases(n: int = 400) -> list[np.ndarray]:
 
     # Hand-picked shapes: unanimous, 2-1 split, three-way disagreement,
     # a command just under and just over the threshold, and ties.
-    q_at = lambda p: int(round(p / pp.OUTPUT_SCALE + pp.OUTPUT_ZERO_POINT))
+    scale, zero = _output_quant()
+    q_at = lambda p: int(round(p / scale + zero))
     thr = _threshold()
     cases += [
         np.array([[127, -128, -128, -128]] * 3, np.int8),               # silence x3
@@ -67,8 +68,21 @@ def _threshold() -> float:
     return C.DEFAULT_CONF_THRESHOLD
 
 
+def _output_quant() -> tuple[float, int]:
+    """Take the output quantisation from the converted model, not from the
+    module defaults -- the C side reads it from kws_config.h, which is
+    generated from the same file, so the two cannot drift apart."""
+    import json
+    p = ROOT / "out" / "report" / "quantization.json"
+    if p.exists():
+        q = json.loads(p.read_text())
+        return float(q["output_scale"]), int(q["output_zero_point"])
+    return pp.OUTPUT_SCALE, pp.OUTPUT_ZERO_POINT
+
+
 def main() -> int:
     thr = _threshold()
+    scale, zero = _output_quant()
     feats = feature_cases()
     votes = vote_cases()
 
@@ -84,7 +98,7 @@ def main() -> int:
 
     vote_rows = []
     for case in votes:
-        r = pp.vote(case, thr)
+        r = pp.vote(case, thr, scale, zero)
         windows = ", ".join(
             "{" + ", ".join(str(int(v)) for v in row) + "}" for row in case)
         vote_rows.append(
@@ -131,7 +145,7 @@ static const KwsVoteVector kKwsVoteVectors[] = {{
 
     print(f"[vectors] {DEST / 'kws_test_vectors.h'}")
     print(f"[vectors] {len(feats)} feature cases, {len(votes)} vote cases, "
-          f"threshold {thr}")
+          f"threshold {thr}, output scale {scale} zero {zero}")
     return 0
 
 

@@ -21,9 +21,10 @@ echo; echo "=== 3/6 quantize ==="
 "$PY" quantize.py
 
 echo; echo "=== 4/6 evaluate ==="
-# Synthetic negatives are deliberately confusable, so the false-trigger budget
-# is not expected to be met here; that check is for real data.
-"$PY" evaluate.py || echo "(threshold budget not met -- expected on synthetic data)"
+# The synthetic negatives are deliberately confusable and the "speech" is a
+# formant synthesiser, so there is no usable operating point here. evaluate.py
+# exits nonzero to say so; on real data that exit code is the gate.
+"$PY" evaluate.py || echo "(no usable operating point -- expected on synthetic data)"
 
 echo; echo "=== 5/6 export firmware artefacts ==="
 "$PY" tools/export_c_array.py

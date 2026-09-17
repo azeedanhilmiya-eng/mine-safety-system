@@ -9,6 +9,9 @@
 //  regenerate these files before any test, demo or reported number.
 // =========================================================================
 
+// WARNING: this threshold did NOT meet the false-trigger budget when
+// it was measured. Treat any demo built on it as provisional.
+
 #pragma once
 
 #include <stdint.h>
@@ -68,7 +71,7 @@ static const int kKwsWindowOffsetMs[KWS_NUM_WINDOWS] = { 0, 200, 400 };
 #define KWS_OUTPUT_ZERO_POINT  -128
 
 // Chosen by evaluate.py's threshold sweep against the false-trigger budget.
-#define KWS_CONF_THRESHOLD     0.94f
+#define KWS_CONF_THRESHOLD     0.99f
 
 // --------------------------------------------------------------- labels ---
 // Index order is the LoRa command id. Append new keywords, never insert.
