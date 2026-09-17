@@ -14,16 +14,45 @@ micro frontend 是**同一份 C 代码**。不是"两边都实现一遍 MFCC 然
 所有共享参数只有一个出处：`kws/config.py`。固件头文件 `kws_config.h` 由它生成，
 所以两边不可能偷偷分叉。
 
-## 环境
+## 从零开始
+
+**先克隆仓库**，所有命令都要在 `voice_kws/` 目录里跑：
 
 ```bash
+git clone https://github.com/azeedanhilmiya-eng/mine-safety-system.git
+cd mine-safety-system
+git checkout claude/fervent-allen-ht5svz
+
+cd voice_kws
 python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+python -m pip install --upgrade pip
+pip install -r requirements.txt          # 约 600 MB，几分钟
 ```
 
-TensorFlow 版本是**锁死的**。`audio_microfrontend` 的可用性和参数签名在不同版本间变动过
-（它没有 `enable_noise_reduction` 这样的开关，降噪由 `smoothing_bits` 那组参数控制），
-2.15.1 是本流程实际验证过的版本。
+装完确认一下（这一步能挡掉绝大多数后续的莫名其妙）：
+
+```bash
+python -c "import tensorflow as tf; print(tf.__version__)"
+python -c "from tensorflow.lite.experimental.microfrontend.python.ops import audio_microfrontend_op; print('frontend ok')"
+```
+
+### 平台说明
+
+**TensorFlow 版本是锁死的。** `audio_microfrontend` 的可用性和参数签名在不同版本间
+变动过（它没有 `enable_noise_reduction` 这样的开关，降噪由 `smoothing_bits` 那组参数
+控制），2.15.1 是本流程实际验证过的版本。
+
+**包名按平台自动切换**，`requirements.txt` 里用 environment marker 处理了：
+`tensorflow-cpu` **没有 Apple Silicon 的 wheel**（只有 macOS x86_64），
+所以 M 系列 Mac 上装的是普通 `tensorflow`；Linux 和 Windows 上用体积更小的 `-cpu` 版。
+
+**Python 版本**：TF 2.15.1 的 macOS arm64 wheel 覆盖 CPython 3.9 / 3.10 / 3.11。
+macOS 自带的 python3（Xcode 命令行工具，通常是 3.9）可以直接用。
+如果遇到问题，装个 3.11：`brew install python@3.11`，然后
+`python3.11 -m venv .venv`。
+
+**编译器**：主机端的 C 代码（单元测试和演示动态库）在 gcc 和 clang 下都验证过
+`-Wall -Wextra -Werror` 干净通过，macOS 的 Xcode 命令行工具够用，不需要额外装东西。
 
 ## 先跑一遍空转
 

@@ -2,8 +2,16 @@
 # tensorflow.lite.experimental.microfrontend, the same C code tflite-micro
 # compiles into the firmware. Its availability and signature have moved across
 # releases, and 2.15.1 is the version this pipeline was built and tested on.
-tensorflow-cpu==2.15.1
-numpy<2
+#
+# The package name differs by platform. tensorflow-cpu publishes no Apple
+# Silicon wheels -- only macOS x86_64 -- so `pip install tensorflow-cpu` fails
+# on an M-series Mac. Plain `tensorflow` has macosx_12_0_arm64 wheels for
+# CPython 3.9 through 3.11 and is the right package there. Elsewhere the -cpu
+# build is smaller and pulls in no GPU stack.
+tensorflow-cpu==2.15.1 ; platform_system != "Darwin"
+tensorflow==2.15.1 ; platform_system == "Darwin"
+
+numpy<2         # TensorFlow 2.15 does not support numpy 2.x
 scipy
 soundfile
 matplotlib      # confusion matrix and threshold-sweep figures
