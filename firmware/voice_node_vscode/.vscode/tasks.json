@@ -1,0 +1,35 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Voice: Build",
+            "type": "process",
+            "command": "powershell.exe",
+            "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/scripts/voice.ps1", "-Action", "Build"],
+            "group": {"kind": "build", "isDefault": true},
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "Voice: Upload firmware and model",
+            "type": "process",
+            "command": "powershell.exe",
+            "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/scripts/voice.ps1", "-Action", "Upload", "-Port", "${input:espPort}"],
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "Voice: Serial Monitor",
+            "type": "process",
+            "command": "powershell.exe",
+            "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/scripts/voice.ps1", "-Action", "Monitor", "-Port", "${input:espPort}"],
+            "problemMatcher": []
+        },
+        {
+            "label": "Voice: List ports",
+            "type": "process",
+            "command": "powershell.exe",
+            "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/scripts/voice.ps1", "-Action", "Ports"],
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [{"id": "espPort", "type": "promptString", "description": "ESP32 USB serial port (not Bluetooth), e.g. COM10"}]
+}

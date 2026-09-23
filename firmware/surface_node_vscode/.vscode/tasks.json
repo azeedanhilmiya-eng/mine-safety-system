@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "PIO: 编译",
+      "type": "shell",
+      "command": "${env:USERPROFILE}/.platformio/penv/Scripts/platformio.exe",
+      "args": ["run"],
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$platformio"]
+    },
+    {
+      "label": "PIO: 烧录固件",
+      "type": "shell",
+      "command": "${env:USERPROFILE}/.platformio/penv/Scripts/platformio.exe",
+      "args": ["run", "-t", "upload"]
+    },
+    {
+      "label": "PIO: 串口监视",
+      "type": "shell",
+      "command": "${env:USERPROFILE}/.platformio/penv/Scripts/platformio.exe",
+      "args": ["device", "monitor", "-b", "115200"],
+      "problemMatcher": []
+    },
+    {
+      "label": "PIO: 清理",
+      "type": "shell",
+      "command": "${env:USERPROFILE}/.platformio/penv/Scripts/platformio.exe",
+      "args": ["run", "-t", "clean"]
+    }
+  ]
+}

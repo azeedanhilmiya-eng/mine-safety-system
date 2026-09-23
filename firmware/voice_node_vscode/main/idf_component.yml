@@ -1,0 +1,4 @@
+dependencies:
+  # Pin the version used by the ESP-IDF 5.3 generation of ESP-Skainet.
+  # Newer 2.5.x pulls ESP-DL code that requires a newer ESP-IDF heap API.
+  espressif/esp-sr: "2.0.0"
