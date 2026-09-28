@@ -1,0 +1,50 @@
+{
+  "version": "1.0",
+  "profile": {
+    "industryId": "1",
+    "sceneId": "17",
+    "categoryId": "254",
+    "productId": "w0f18T028t"
+  },
+  "properties": [
+    {
+      "identifier": "mq4",
+      "name": "甲烷传感器",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "int32",
+        "specs": {
+          "max": "4095",
+          "min": "0",
+          "step": "1",
+          "unit": ""
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    },
+    {
+      "identifier": "mq7",
+      "name": "一氧化碳传感器",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "int32",
+        "specs": {
+          "max": "4095",
+          "min": "0",
+          "step": "1",
+          "unit": ""
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    }
+  ],
+  "events": [],
+  "services": [],
+  "combs": []
+}

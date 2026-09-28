@@ -64,6 +64,16 @@ node_modules/
 
 # dotenv environment variables file
 .env
+firmware/surface_node/include/onenet_secrets.h
+firmware/pi_node2/mine-voice/onenet_secrets.json
 
 # dataconnect generated files
 .dataconnect
+
+# PlatformIO build artifacts
+.pio/
+
+# Local M2 runtime configuration
+firmware/pi_node2/mine-voice/config.json
+__pycache__/
+*.py[cod]

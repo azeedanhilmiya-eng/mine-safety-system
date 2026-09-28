@@ -1,0 +1,6 @@
+numpy>=1.24,<3
+sounddevice>=0.4.6,<1
+sherpa-onnx>=1.10,<2
+adafruit-blinka>=8.50,<10
+adafruit-circuitpython-rfm9x>=2.2,<3
+paho-mqtt>=1.6,<2

@@ -1,0 +1,61 @@
+{
+  "node_id": "M2",
+  "audio": {
+    "device": 0,
+    "trigger_mode": "button",
+    "button_gpio": 17,
+    "button_debounce_ms": 30,
+    "capture_sample_rate": 44100,
+    "sample_rate": 16000,
+    "block_ms": 30,
+    "start_rms": 650,
+    "stop_rms": 420,
+    "start_blocks": 3,
+    "silence_ms": 900,
+    "pre_roll_ms": 300,
+    "min_speech_ms": 350,
+    "max_speech_seconds": 30,
+    "wait_timeout_seconds": 5
+  },
+  "asr": {
+    "model": "models/model.int8.onnx",
+    "tokens": "models/tokens.txt",
+    "num_threads": 4,
+    "sample_rate": 16000,
+    "feature_dim": 80,
+    "decoding_method": "greedy_search"
+  },
+  "lora": {
+    "enabled": false,
+    "frequency_mhz": 433.0,
+    "cs_pin": "D5",
+    "reset_pin": "D25",
+    "spreading_factor": 7,
+    "signal_bandwidth": 125000,
+    "coding_rate": 5,
+    "preamble_length": 8,
+    "sync_word": 163,
+    "tx_power": 17,
+    "enable_crc": true
+  },
+  "protocol": {
+    "text_bytes_per_fragment": 80,
+    "inter_fragment_delay_ms": 180,
+    "ack_enabled": false,
+    "ack_timeout_seconds": 1.5,
+    "max_attempts": 3,
+    "retry_backoff_ms": 250
+  },
+  "runtime": {
+    "sequence_file": "state/sequence.txt",
+    "log_file": "logs/mine_voice.log",
+    "save_audio": false,
+    "audio_directory": "recordings",
+    "heartbeat_seconds": 60,
+    "transcript_file": "logs/transcripts.jsonl"
+  },
+  "onenet": {
+    "enabled": false,
+    "secrets_file": "onenet_secrets.json"
+  }
+}

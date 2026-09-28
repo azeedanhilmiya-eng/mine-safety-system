@@ -1,34 +1,24 @@
-# Firmware Guide
+# 固件与双节点接入
 
-This folder contains the ESP32 firmware for your mine safety system.
+| 设备 | 当前工程 | 本地职责 | OneNET 接入 |
+|---|---|---|---|
+| 井下节点一 M1 | [`esp32s3-kws/`](esp32s3-kws/README.md) | ESP32-S3 离线中文命令识别、OLED、LoRa | 原设备 `zlmdesign` 的 MQTT 源码；新版固件上报待核验 |
+| 井下节点二 M2 | [`pi_node2/mine-voice/`](pi_node2/mine-voice/README.md) | 树莓派 5 按键录音、离线转写、LoRa | 独立设备 `mine-voice-m2`，MQTT 直报已部署；实时属性待核验 |
+| 地面网关 GW | [`surface_node/`](surface_node/platformio.ini) | LoRa 收包与文本重组、中文 OLED、蜂鸣器、M2 分片 ACK | 原设备 `zlmdesign` 的 HTTPS 源码；新版固件烧录与上报待验证 |
 
-## Files
-- `esp32s3-kws/` — Node 1 PlatformIO project (ESP32-S3 N16R8 + INMP441 + Ra-02).
-  Runs offline Chinese command recognition with ESP-SR MultiNet6 and sends `VOICE` / `STATUS`
-  packets. MQ-4/MQ-7 sampling is present in code but disabled in the current debug configuration.
-  Build and upload from this folder; see its README and `include/onenet_secrets.example.h`.
-- `surface_node_vscode/` — surface gateway PlatformIO project (ESP32-S3 N16R8 + Ra-02).
-  Receives `VOICE / DATA / STATUS` packets, displays events on a Chinese SH1106 OLED,
-  sounds the buzzer, sends three delayed ACK packets for voice events, and uploads status/events
-  to Firebase Realtime Database. Build with `pio run -t upload`; see `include/secrets.example.h`.
-- `voice_node_vscode/` — ESP-IDF alternative implementation of the underground voice node.
-- `underground_node1_mine1.ino` — early Arduino IDE firmware for underground Node 1
-- `underground_node2_mine2.ino` — early Arduino IDE firmware for underground Node 2
-- `surface_node.ino` — early Arduino IDE surface gateway (LoRa + GSM SMS + OLED + buzzer).
-  Uses the old `A,<nodeId>,…` / `T,<nodeId>,…` protocol, so it does **not** talk to the current
-  `esp32s3-kws` node; it also still contains an unresolved git merge conflict at the end of the file.
+## 当前代码
 
-## Recommended Arduino IDE Settings
-- Board: `ESP32S3 Dev Module`
-- Flash Mode: `QIO` 80MHz
-- Flash Size: `16MB (128Mb)`
-- Partition Scheme: `Huge APP (3MB No OTA/1MB SPIFFS)`
-- PSRAM: `OPI PSRAM`
-- Upload Speed: `921600`
+- `esp32s3-kws/` 是当前 M1 PlatformIO 工程。ESP-SR MultiNet6 识别三条中文求助命令并发送 `VOICE` / `STATUS`；MQ-4/MQ-7 采样代码保留，但当前 `ENABLE_MQ_SENSORS=0`。
+- `pi_node2/mine-voice/` 是当前 M2 按键录音与离线 ASR 服务。识别文本通过 LoRa 分片发给网关，同时 MQTT 直报到独立 OneNET 设备 `mine-voice-m2`；云端属性更新仍待核验。Ra-02 使用 GPIO5 作为 NSS。
+- `surface_node/` 是当前网关 OneNET 工程。它接收 `VOICE` / `TXT` / `STATUS`，重组 UTF-8 文本、显示 OLED、驱动蜂鸣器并返回 M2 分片 ACK；HTTPS 汇总运行在后台任务中。源码具备 OneNET 配置，但新固件尚待烧录和实测。
+- `surface_node_vscode/` 是保留的 Firebase 网关工程；`voice_node_vscode/` 是 ESP-IDF 语音节点替代实现。根目录的 `surface_node.ino` 是早期 Arduino 原型，和当前 `surface_node/` 工程分开维护。
 
-## Notes
-- Calibrate MQ sensor thresholds after sensor warm-up.
-- Use unique node IDs: `M1` and `M2`.
-- The surface node uploads data to Firebase and (in the old `.ino` version) also sends SMS alerts.
-- Firebase database URL / WiFi credentials now live in `surface_node_vscode/include/secrets.h`
-  (copy from `secrets.example.h`, git-ignored).
+## 当前 OneNET 状态与验证边界
+
+M1 与地面网关使用原设备 `zlmdesign`，M1 使用 MQTT 源码路径、网关使用 HTTPS 源码路径；M2 已部署独立设备 `mine-voice-m2` 并配置 MQTT 直报。M2 的实时属性、M1/网关新固件上报和可视化数据源仍待核验。云端设备在线不代表 LoRa 链路在线。
+
+已保存 15 个物模型属性和一个未绑定实时数据、未发布的 View 页面草稿。源码配置不代表硬件已经烧录。具体设备字段、页面配置和验证记录见 [`ONENET_INTEGRATION.md`](ONENET_INTEGRATION.md) 与 [`pi_node2/INTEGRATION_STATUS.md`](pi_node2/INTEGRATION_STATUS.md)。
+
+本机配置与密钥文件（包括 `surface_node/include/onenet_secrets.h`、`pi_node2/mine-voice/config.json` 和 `pi_node2/mine-voice/onenet_secrets.json`）已由 Git 忽略；提交时仅提供 `.example` 模板，不要把凭据写进仓库。
+
+Wi-Fi / OneNET 与本地 OLED、蜂鸣器、LoRa 是独立路径。云端断连时，网关仍按本地链路工作；联网恢复后网关上传最新快照，不补发全部离线历史。

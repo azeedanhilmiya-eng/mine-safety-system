@@ -26,6 +26,8 @@
 
 ## 🕳️ About The Project
 
+> **当前联调方案（2026-09-28）：** 井下 M1 为 ESP32-S3 离线语音节点，M2 为树莓派 5 按键录音/离线转写节点；两者通过 LoRa 接入地面网关。OneNET 接入分设备运行：M1 与网关使用原设备（M1 MQTT、网关 HTTPS），M2 已部署独立设备 `mine-voice-m2` 并配置 MQTT 直报。M2 实时属性、M1/网关新固件上报和可视化数据源仍待核验；云端设备在线不代表 LoRa 在线。下方 Firebase、GSM、气体/水位与旧 Web/Flutter 描述属于原项目方案，不代表当前硬件或云端已经启用。当前固件与 OneNET 字段见 [firmware/README.md](firmware/README.md) 和 [OneNET 接入说明](firmware/ONENET_INTEGRATION.md)。
+
 > MinePulse (**SubterraGuard**) is a professional, end-to-end IoT mine safety solution engineered to protect underground miners with fast multi-gas hazard detection, instant local & cloud alerts, and polished cross-platform monitoring apps.
 
 Two underground **ESP32‑S3** sensor nodes continuously measure **methane (MQ‑4)**, **carbon monoxide (MQ‑7)**, and **water level**. The moment any reading breaches a danger threshold, the node fires a **12V siren** and transmits a **LoRa 433 MHz** radio alert to the surface gateway — within milliseconds, with **zero cloud dependency underground**.

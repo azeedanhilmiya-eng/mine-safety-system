@@ -1,0 +1,20 @@
+# 矿安智联 井下节点2 开机自启 (模板)
+# 不要手动拷贝: 运行 ./install.sh, 它会把 @USER@ / @DIR@ 换成当前用户和本目录后再安装。
+[Unit]
+Description=Kuang node2 (Raspberry Pi 5 + SX1278) text over LoRa
+After=multi-user.target
+
+[Service]
+Type=simple
+User=@USER@
+WorkingDirectory=@DIR@
+# 默认：离线语音识别（asr_front.py，按键说话）→ 管道 → 传输层 node2.py
+# asr_front.py 需要 sherpa-onnx，所以用本目录的 venv；日志写 asr.log（stderr）
+ExecStart=/bin/sh -c 'MIC_GAIN=4 @DIR@/venv/bin/python -u asr_front.py 2>>@DIR@/asr.log | /usr/bin/python3 -u node2.py --state ASR_READY --log-file @DIR@/node2.log'
+# 不接语音、只挂机测传输层时，改用下面这行（循环发内置巡检语料）：
+# ExecStart=/usr/bin/python3 -u node2.py --demo --log-file @DIR@/node2.log
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

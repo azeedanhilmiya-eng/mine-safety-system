@@ -1,0 +1,263 @@
+{
+  "version": "1.0",
+  "profile": {
+    "industryId": "1",
+    "sceneId": "17",
+    "categoryId": "254",
+    "productId": "w0f18T028t"
+  },
+  "properties": [
+    {
+      "identifier": "m1_online",
+      "name": "M1_Online",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "bool",
+        "specs": {
+          "true": "online",
+          "false": "offline"
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    },
+    {
+      "identifier": "mq4",
+      "name": "甲烷传感器",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "int32",
+        "specs": {
+          "max": "4095",
+          "min": "0",
+          "step": "1",
+          "unit": ""
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    },
+    {
+      "identifier": "mq7",
+      "name": "一氧化碳传感器",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "int32",
+        "specs": {
+          "max": "4095",
+          "min": "0",
+          "step": "1",
+          "unit": ""
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    },
+    {
+      "identifier": "m1_event",
+      "name": "M1语音事件",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "string",
+        "specs": {
+          "length": "64"
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    },
+    {
+      "identifier": "m1_event_seq",
+      "name": "M1事件序号",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "int32",
+        "specs": {
+          "max": "2147483647",
+          "min": "0",
+          "step": "1",
+          "unit": ""
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    },
+    {
+      "identifier": "m1_lora_online",
+      "name": "M1射频在线",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "bool",
+        "specs": {
+          "true": "是",
+          "false": "否"
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    },
+    {
+      "identifier": "m1_rssi",
+      "name": "M1信号强度",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "int32",
+        "specs": {
+          "max": "0",
+          "min": "-160",
+          "step": "1",
+          "unit": ""
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    },
+    {
+      "identifier": "m1_alarm",
+      "name": "M1报警",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "bool",
+        "specs": {
+          "true": "是",
+          "false": "否"
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    },
+    {
+      "identifier": "m1_rx_event",
+      "name": "M1网关接收事件",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "string",
+        "specs": {
+          "length": "255"
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    },
+    {
+      "identifier": "m2_lora_online",
+      "name": "M2射频在线",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "bool",
+        "specs": {
+          "true": "是",
+          "false": "否"
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    },
+    {
+      "identifier": "m2_rssi",
+      "name": "M2信号强度",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "int32",
+        "specs": {
+          "max": "0",
+          "min": "-160",
+          "step": "1",
+          "unit": ""
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    },
+    {
+      "identifier": "m2_alarm",
+      "name": "M2报警",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "bool",
+        "specs": {
+          "true": "是",
+          "false": "否"
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    },
+    {
+      "identifier": "m2_text",
+      "name": "M2转写文本",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "string",
+        "specs": {
+          "length": "255"
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    },
+    {
+      "identifier": "gw_wifi",
+      "name": "网关WiFi连接",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "bool",
+        "specs": {
+          "true": "是",
+          "false": "否"
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    },
+    {
+      "identifier": "gw_uptime",
+      "name": "网关运行秒数",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "",
+      "dataType": {
+        "type": "int32",
+        "specs": {
+          "max": "2147483647",
+          "min": "0",
+          "step": "1",
+          "unit": ""
+        }
+      },
+      "functionMode": "property",
+      "required": false
+    }
+  ],
+  "events": [],
+  "services": [],
+  "combs": []
+}
