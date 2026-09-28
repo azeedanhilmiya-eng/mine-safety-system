@@ -3,12 +3,15 @@
 This folder contains the ESP32 firmware for your mine safety system.
 
 ## Files
-- `surface_node_vscode/` — **current** surface gateway, PlatformIO project (ESP32-S3 N16R8 + Ra-02).
-  Receives `VOICE / DATA / STATUS` packets from Node 1 and Node 2, shows them on a SH1106 OLED
-  with a Chinese font, and uploads `/status/<mineN>` + `/alerts/<mineN>` to
-  Firebase Realtime Database. Receive-only (no ACK / no downlink commands).
-  Build with `pio run -t upload` inside that folder; see its `include/secrets.example.h`.
-- `voice_node_vscode/` — ESP-IDF version of the underground voice node (alternative to `esp32s3-kws/`).
+- `esp32s3-kws/` — Node 1 PlatformIO project (ESP32-S3 N16R8 + INMP441 + Ra-02).
+  Runs offline Chinese command recognition with ESP-SR MultiNet6 and sends `VOICE` / `STATUS`
+  packets. MQ-4/MQ-7 sampling is present in code but disabled in the current debug configuration.
+  Build and upload from this folder; see its README and `include/onenet_secrets.example.h`.
+- `surface_node_vscode/` — surface gateway PlatformIO project (ESP32-S3 N16R8 + Ra-02).
+  Receives `VOICE / DATA / STATUS` packets, displays events on a Chinese SH1106 OLED,
+  sounds the buzzer, sends three delayed ACK packets for voice events, and uploads status/events
+  to Firebase Realtime Database. Build with `pio run -t upload`; see `include/secrets.example.h`.
+- `voice_node_vscode/` — ESP-IDF alternative implementation of the underground voice node.
 - `underground_node1_mine1.ino` — early Arduino IDE firmware for underground Node 1
 - `underground_node2_mine2.ino` — early Arduino IDE firmware for underground Node 2
 - `surface_node.ino` — early Arduino IDE surface gateway (LoRa + GSM SMS + OLED + buzzer).

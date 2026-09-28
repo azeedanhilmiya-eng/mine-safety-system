@@ -1,0 +1,27 @@
+{
+  "platformio-ide.autoRebuildAutocompleteIndex": true,
+  // 必须为 true: 用扩展自带的 pioarduino Core(首次会联网下载便携 Python + Core)。
+  // 设成 false 会让扩展改用系统 PATH 里的 python, 而本机 PATH 第一位是
+  // C:\Users\ksl\AppData\Local\Programs\Python\Python313\python.exe (没装 platformio),
+  // 于是报 ModuleNotFoundError: No module named 'platformio', 核心起不来,
+  // 工具栏的 Build/Upload/Monitor 命令全部不注册(提示 command 'platformio-ide.upload' not found)。
+  "platformio-ide.useBuiltinPIOCore": true,
+  "platformio-ide.pioHomeServerHttpPort": 0,
+  "files.associations": {
+    "*.ino": "cpp"
+  },
+  "C_Cpp.default.cppStandard": "c++17",
+  "C_Cpp.intelliSenseEngine": "default",
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+
+  // 让 VSCode 内置终端下的 pio / idf_tools 也走乐鑫镜像, 并强制 UTF-8 输出
+  // (中文 Windows 默认 GBK, pioarduino 读 idf_tools 输出时会 UnicodeDecodeError)
+  "terminal.integrated.env.windows": {
+    "IDF_GITHUB_ASSETS": "dl.espressif.com/github_assets",
+    "PYTHONUTF8": "1"
+    // 需要走代理下 GitHub 时再打开下面三行 (FlClash 关闭时请注释掉, 否则会连不上)
+    // "HTTP_PROXY": "http://127.0.0.1:7890",
+    // "HTTPS_PROXY": "http://127.0.0.1:7890",
+    // "NO_PROXY": "dl.espressif.com,espressif.com,localhost,127.0.0.1"
+  }
+}
