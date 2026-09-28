@@ -286,6 +286,7 @@ mine-safety-system/
 ├── cloud_functions/     # Firebase Cloud Functions (FCM dispatch)
 ├── functions/           # Additional backend functions
 ├── assets/              # Logo, diagrams, and gallery images
+├── docs/                # Project plans, experiment plan, and hardware files
 ├── firestore.rules      # Firestore security rules
 ├── firebase.json         # Firebase project configuration
 └── README.md
